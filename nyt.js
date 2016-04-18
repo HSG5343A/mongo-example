@@ -3,7 +3,8 @@ var request = require('request');
 var mongoose = require('mongoose');
 
 var app = express();
-mongoose.connect('mongodb://localhost/test');
+// mongoose.connect('mongodb://localhost/test');
+mongoose.connect('mongodb://heroku_v5l17lxh:og1d529id6q0jblk8utrn69ehu@ds011271.mlab.com:11271/heroku_v5l17lxh');
 
 var Article = mongoose.model('Article', { data: String, created_on: Date });
 
@@ -50,6 +51,10 @@ app.get('/news/', function (req, res) {
                 }
             }
     });
+});
+
+app.get('/index.html', function(req, res) {
+    res.sendFile(__dirname + '/map.html');
 });
 
 app.listen(3000, function () {
