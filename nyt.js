@@ -3,13 +3,21 @@ var request = require('request');
 var mongoose = require('mongoose');
 
 var app = express();
-// mongoose.connect('mongodb://localhost/test');
-mongoose.connect('mongodb://heroku_v5l17lxh:og1d529id6q0jblk8utrn69ehu@ds011271.mlab.com:11271/heroku_v5l17lxh');
+var connection_string = 'localhost/test';
+
+// if OPENSHIFT env variables are present, use the available connection info:
+if(process.env.OPENSHIFT_MONGODB_DB_PASSWORD){
+  connection_string = process.env.OPENSHIFT_MONGODB_DB_USERNAME + ":" +
+  process.env.OPENSHIFT_MONGODB_DB_PASSWORD + "@" +
+  process.env.OPENSHIFT_MONGODB_DB_HOST + ':' +
+  process.env.OPENSHIFT_MONGODB_DB_PORT + '/' +
+  process.env.OPENSHIFT_APP_NAME;
+}
+mongoose.connect('mongodb://' + connection_string);
 
 var Article = mongoose.model('Article', { data: String, created_on: Date });
 
 var ARTICLES_API_URL = 'http://api.nytimes.com/svc/mostpopular/v2/mostviewed/all-sections/7.json?api-key=e8b9bdd9df337205541989dfd35418e2:1:73520418';
-
 
 app.get('/news/', function (req, res) {
     var start = new Date();
@@ -34,7 +42,7 @@ app.get('/news/', function (req, res) {
                                 return article.geo_facet;
                             });
                             articlesWithGeo.forEach(function(articleData) {
-                                var article = new Article({ 
+                                var article = new Article({
                                     data: JSON.stringify(articleData),
                                     created_on: new Date()
                                 });
@@ -53,12 +61,12 @@ app.get('/news/', function (req, res) {
     });
 });
 
-app.get('/index.html', function(req, res) {
+app.get('/', function(req, res) {
     res.sendFile(__dirname + '/map.html');
 });
 
-app.listen(process.env.PORT || 3000, function () {
-    var myPort = process.env.PORT || 3000;
-  console.log('Example app listening on port ' + myPort);
+var ipaddress = process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1";
+var port = process.env.OPENSHIFT_NODEJS_PORT || 8080;
+app.listen(port, ipaddress, function() {
+    console.log('Example app listening on port ' + port);
 });
-
